@@ -10,7 +10,7 @@ const char *ssid = "Network";
 const char *password = "helloworld";
 
 // Button pin definitions
-const int buttonPins[] = {15, 4, 5, 12, 25, 33, 23}; // Define your GPIO pins
+const int buttonPins[] = {15, 4, 5, 19, 21, 22, 23}; // Define your GPIO pins
 const int numButtons = sizeof(buttonPins) / sizeof(buttonPins[0]);
 
 std::vector<int> buttonList; // List to store pressed button IDs
@@ -35,7 +35,7 @@ void setup() {
   }
 
   // Micro-ROS setup
-  set_microros_wifi_transports("Network", "helloworld", "192.168.100.248", 8888);
+  set_microros_wifi_transports("Network", "helloworld", "192.168.140.248", 8888);
 
   allocator = rcl_get_default_allocator();
   rclc_support_init(&support, 0, NULL, &allocator);
