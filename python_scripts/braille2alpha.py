@@ -4,6 +4,10 @@ from std_msgs.msg import Int32MultiArray
 import tkinter as tk
 from datetime import datetime
 import csv
+from gtts import gTTS
+import os
+import tempfile
+
 
 # Braille to alphabet mapping (0-5 system)
 braille_to_alphabet = {
@@ -64,12 +68,15 @@ class BrailleToAlphabetNode(Node):
             self.listener_callback,
             10)
         self.subscription  # Prevent unused variable warning
+    
+       
 
     def listener_callback(self, msg):
         pressed_buttons = tuple(sorted(msg.data))
         if pressed_buttons in braille_to_alphabet:
             alphabet = braille_to_alphabet[pressed_buttons]
             self.get_logger().info(f"Pressed buttons {pressed_buttons} -> {alphabet}")
+            self.speak(alphabet)
             self.gui.update_text(alphabet)  # Update GUI
             self.write_to_csv(alphabet)    # Log to CSV
         else:
@@ -80,6 +87,23 @@ class BrailleToAlphabetNode(Node):
         with open(csv_file, mode='a', newline='') as file:
             writer = csv.writer(file)
             writer.writerow([timestamp, alphabet])
+
+    def speak(self, text):
+            """
+            Use gTTS to convert the given text to speech and play it, if valid.
+            """
+            if not text or not isinstance(text, str):  # Ensure text is valid
+                self.get_logger().warn("Invalid text received for speech synthesis. Staying silent.")
+                return  # Skip processing
+
+            try:
+                tts = gTTS(text=text, lang='en-in')
+                with tempfile.NamedTemporaryFile(delete=True) as temp_audio:
+                    temp_audio_path = temp_audio.name + ".mp3"
+                    tts.save(temp_audio_path)
+                    os.system(f"mpg321 {temp_audio_path} > /dev/null 2>&1")  # Suppress logs
+            except Exception as e:
+                self.get_logger().warn(f"Repeating previous letter: {e}")
 
 def main(args=None):
     rclpy.init(args=args)
