@@ -7,6 +7,7 @@ import csv
 from gtts import gTTS
 import os
 import tempfile
+import language_tool_python  # Spell check library
 
 
 # Braille to alphabet mapping (0-5 system)
@@ -53,9 +54,30 @@ class TypingGUI:
         self.text_area = tk.Text(root, height=10, width=50, font=("Helvetica", 16))
         self.text_area.pack()
         self.root.title("Braille to Alphabet Typing")
+        self.tool = language_tool_python.LanguageTool('en-US')  # Initialize the LanguageTool object
 
     def update_text(self, char):
         self.text_area.insert(tk.END, char)
+        self.check_spelling()  # Check spelling after each character update
+
+    def check_spelling(self):
+        """Check the text in the text area for spelling errors using LanguageTool"""
+        text = self.text_area.get("1.0", tk.END).strip()  # Get the current text in the Text widget
+        matches = self.tool.check(text)
+        
+        if matches:
+            self.provide_audio_feedback("There are some spelling mistakes.")
+            corrections = [match.replacement for match in matches]
+            suggestions_text = ", ".join(corrections)
+            self.provide_audio_feedback(f"Suggested corrections are: {suggestions_text}")
+
+    def provide_audio_feedback(self, message):
+        """Convert the provided message to speech and play it."""
+        tts = gTTS(message, lang='en')
+        with tempfile.NamedTemporaryFile(delete=True) as temp_audio:
+            temp_audio_path = temp_audio.name + ".mp3"
+            tts.save(temp_audio_path)
+            os.system(f"mpg321 {temp_audio_path} > /dev/null 2>&1")  # Suppress logs
 
 # ROS 2 Node
 class BrailleToAlphabetNode(Node):
@@ -68,8 +90,6 @@ class BrailleToAlphabetNode(Node):
             self.listener_callback,
             10)
         self.subscription  # Prevent unused variable warning
-    
-       
 
     def listener_callback(self, msg):
         pressed_buttons = tuple(sorted(msg.data))
@@ -77,6 +97,8 @@ class BrailleToAlphabetNode(Node):
             alphabet = braille_to_alphabet[pressed_buttons]
             self.get_logger().info(f"Pressed buttons {pressed_buttons} -> {alphabet}")
             self.speak(alphabet)
+            if braille_to_alphabet[(6,)]:
+                self.speak("space")
             self.gui.update_text(alphabet)  # Update GUI
             self.write_to_csv(alphabet)    # Log to CSV
         else:
@@ -103,7 +125,7 @@ class BrailleToAlphabetNode(Node):
                     tts.save(temp_audio_path)
                     os.system(f"mpg321 {temp_audio_path} > /dev/null 2>&1")  # Suppress logs
             except Exception as e:
-                self.get_logger().warn(f"Repeating previous letter: {e}")
+                self.get_logger().warn(f"Error with text-to-speech: {e}")
 
 def main(args=None):
     rclpy.init(args=args)
