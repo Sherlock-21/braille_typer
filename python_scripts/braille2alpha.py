@@ -75,7 +75,7 @@ class BrailleToAlphabetNode(Node):
             alphabet = braille_to_alphabet[pressed_buttons]
             self.get_logger().info(f"Pressed buttons {pressed_buttons} -> {alphabet}")
             self.speak(alphabet)
-            if braille_to_alphabet[(6,)]:
+            if braille_to_alphabet[pressed_buttons] == braille_to_alphabet[(6,)]:
                self.speak("space")
             self.gui.update_text(alphabet)  # Update GUI
             self.write_to_csv(alphabet)    # Log to CSV
