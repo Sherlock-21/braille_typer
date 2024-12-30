@@ -7,13 +7,13 @@
 
 // Wi-Fi credentials (replace with your network's credentials)
 const char *ssid = "Network";
-const char *password = "helloworld";
+const char *password = "braillebyte";
 
 // Button pin definitions
-const int buttonPins[] = {15, 4, 5, 19, 21, 22, 23}; // Define your GPIO pins
+const int buttonPins[] = { 15, 4, 5, 19, 21, 22, 23 };  // Define your GPIO pins
 const int numButtons = sizeof(buttonPins) / sizeof(buttonPins[0]);
 
-std::vector<int> buttonList; // List to store pressed button IDs
+std::vector<int> buttonList;  // List to store pressed button IDs
 rcl_publisher_t publisher;
 std_msgs__msg__Int32MultiArray msg;
 
@@ -24,7 +24,7 @@ rcl_allocator_t allocator;
 
 // Timing
 unsigned long lastPublishTime = 0;
-const unsigned long publishInterval = 500; // Publish interval in ms
+const unsigned long publishInterval = 500;  // Publish interval in ms
 
 void setup() {
   Serial.begin(115200);
@@ -35,19 +35,19 @@ void setup() {
   }
 
   // Micro-ROS setup
-  set_microros_wifi_transports("Network", "helloworld", "192.168.140.248", 8888);
+  set_microros_wifi_transports("Network", "braillebyte", "10.91.117.248", 8888);
 
   allocator = rcl_get_default_allocator();
   rclc_support_init(&support, 0, NULL, &allocator);
   rclc_node_init_default(&node, "esp32_button_node", "", &support);
   rclc_publisher_init_default(
-      &publisher,
-      &node,
-      ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32MultiArray),
-      "button_states");
+    &publisher,
+    &node,
+    ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32MultiArray),
+    "button_states");
 
   // Initialize message
-  msg.data.capacity = 7; // Maximum number of buttons
+  msg.data.capacity = 7;  // Maximum number of buttons
   msg.data.size = 0;
   msg.data.data = (int32_t *)malloc(msg.data.capacity * sizeof(int32_t));
 }
@@ -56,9 +56,9 @@ void loop() {
   // Check button states
   bool anyButtonPressed = false;
   for (int i = 0; i < numButtons; i++) {
-    if (digitalRead(buttonPins[i]) == LOW) { // Button is pressed
+    if (digitalRead(buttonPins[i]) == LOW) {  // Button is pressed
       if (std::find(buttonList.begin(), buttonList.end(), i) == buttonList.end()) {
-        buttonList.push_back(i); // Add button index to the list
+        buttonList.push_back(i);  // Add button index to the list
         Serial.print("Button ");
         Serial.print(i);
         Serial.println(" pressed.");
@@ -83,6 +83,4 @@ void loop() {
     // Clear the button list
     buttonList.clear();
   }
-
- 
 }
