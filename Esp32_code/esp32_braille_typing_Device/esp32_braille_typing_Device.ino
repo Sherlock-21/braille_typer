@@ -7,10 +7,10 @@
 
 // Wi-Fi credentials (replace with your network's credentials)
 const char *ssid = "Network";
-const char *password = "braillebyte";
+const char *password = "12345678";
 
 // Button pin definitions
-const int buttonPins[] = { 15, 4, 5, 19, 21, 22, 23 };  // Define your GPIO pins
+const int buttonPins[] = { 2, 3, 4, 5, 6, 7, 8, 9, 10 };  // Define your GPIO pins
 const int numButtons = sizeof(buttonPins) / sizeof(buttonPins[0]);
 
 std::vector<int> buttonList;  // List to store pressed button IDs
@@ -35,7 +35,7 @@ void setup() {
   }
 
   // Micro-ROS setup
-  set_microros_wifi_transports("Network", "braillebyte", "10.91.117.248", 8888);
+  set_microros_wifi_transports("Network", "12345678", "10.159.93.248", 8888);
 
   allocator = rcl_get_default_allocator();
   rclc_support_init(&support, 0, NULL, &allocator);
